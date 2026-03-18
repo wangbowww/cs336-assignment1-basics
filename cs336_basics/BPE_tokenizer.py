@@ -1,26 +1,14 @@
 from .pretokenization import pre_tokenization
 
-def merge(
-    vocab: dict[int, bytes],
-    pre_tokens: dict[tuple[bytes], int],
-    vocab_size: int,
-) -> list[tuple[bytes, bytes]]:
-    merges: list[tuple[bytes, bytes]] = []
-    # merge util we reach vocab_size
-    while len(vocab) < vocab_size:
-        counts = {}
-        # split each bytes
-        for token, freq in pre_tokens.items():
-            for i in range(len(token) - 1):
-                pair = (token[i], token[i+1])
-                counts[pair] = counts.get(pair, 0) + freq
-        # get max one
-        assert len(counts) > 0
-        best_pair, best_freq = max(counts.items(), key=lambda x: (x[1], x[0]))
-        # update merges and vocab
-        merges.append(best_pair)
-        vocab[len(vocab)] = best_pair[0] + best_pair[1]
-        # actual merge, update pre_tokens
+def _split_pre_tokens(pre_tokens: dict[tuple[bytes], int]):
+    counts = {}
+    for token, freq in pre_tokens.items():
+        for i in range(len(token) - 1):
+            pair = (token[i], token[i+1])
+            counts[pair] = counts.get(pair, 0) + freq
+    return counts
+
+def _update_pre_tokens(pre_tokens: dict[tuple[bytes], int], best_pair: tuple[bytes, bytes]):
         new_pre_tokens = {}
         for token, freq in pre_tokens.items():
             new_token = []
@@ -33,7 +21,26 @@ def merge(
                     new_token.append(token[i])
                     i += 1
             new_pre_tokens[tuple(new_token)] = new_pre_tokens.get(tuple(new_token), 0) + freq
-        pre_tokens = new_pre_tokens
+        return new_pre_tokens
+
+def merge(
+    vocab: dict[int, bytes],
+    pre_tokens: dict[tuple[bytes], int],
+    vocab_size: int,
+) -> list[tuple[bytes, bytes]]:
+    merges: list[tuple[bytes, bytes]] = []
+    # merge util we reach vocab_size
+    while len(vocab) < vocab_size:
+        # split each bytes
+        counts = _split_pre_tokens(pre_tokens)
+        # get max one
+        assert len(counts) > 0
+        best_pair, best_freq = max(counts.items(), key=lambda x: (x[1], x[0]))
+        # update merges and vocab
+        merges.append(best_pair)
+        vocab[len(vocab)] = best_pair[0] + best_pair[1]
+        # actual merge, update pre_tokens
+        pre_tokens = _update_pre_tokens(pre_tokens, best_pair)
     return merges
 
 
