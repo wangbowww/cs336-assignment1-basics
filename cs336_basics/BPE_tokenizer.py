@@ -59,6 +59,8 @@ def _update_pre_tokens_with_buffer(
     pair_freq_buffer: dict[tuple[bytes, bytes], int],
     pair_freq_index_buffer: dict[tuple[bytes, bytes], list[tuple[bytes, ...]]]
 ):
+    # some pre_tokens has been removed, but pair_freq_index_buffer[pair] = list[...pre_token...]
+    # so it will occur "Key Error"
     assert len(pair_freq_buffer) > 0
     # get best pair from buffer
     best_pair, best_freq = max(pair_freq_buffer.items(), key=lambda x: (x[1], x[0]))
