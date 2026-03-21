@@ -73,7 +73,7 @@ def pre_tokenization(
 
         # The following is a serial implementation, but you can parallelize this
         # by sending each start/end pair to a set of processes.
-        all_pre_tokens: dict[tuple[bytes], int] = {}
+        all_pre_tokens: dict[tuple[bytes, ...], int] = {}
         for start, end in zip(boundaries[:-1], boundaries[1:]):
             f.seek(start)
             chunk = f.read(end - start).decode("utf-8", errors="ignore")
