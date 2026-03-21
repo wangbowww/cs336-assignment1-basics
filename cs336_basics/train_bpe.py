@@ -1,4 +1,5 @@
 from .pretokenization import pre_tokenization
+import json
 
 def merge(
     vocab: dict[int, bytes],
@@ -140,4 +141,20 @@ def train_bpe(
     # merge loop
     # merges = merge(vocab, pre_tokens, vocab_size)
     merges = merge_with_buffer(vocab, pre_tokens, vocab_size)
+    return vocab, merges
+
+def save_bpe_json(path: str, vocab, merges):
+    payload = {
+        "vocab": {str(k): v.hex() for k, v in vocab.items()},
+        "merges": [[a.hex(), b.hex()] for a, b in merges],
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f)
+
+def load_bpe_json(path: str):
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    vocab = {int(k): bytes.fromhex(v) for k, v in payload["vocab"].items()}
+    merges = [(bytes.fromhex(a), bytes.fromhex(b)) for a, b in payload["merges"]]
     return vocab, merges
