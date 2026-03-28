@@ -78,7 +78,7 @@ def pre_tokenization(
     special_tokens: list[str]
 ) -> dict[tuple[bytes, ...], int]:
     with open(path, "rb") as f:
-        num_processes = 8
+        num_processes = 16
         boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
 
     # store args for multi-processing
