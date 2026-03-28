@@ -1,4 +1,4 @@
-from .pretokenization import pre_tokenization
+from .pretokenization_mp import pre_tokenization
 import json
 
 def merge(
