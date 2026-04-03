@@ -4,6 +4,7 @@ from typing import BinaryIO
 import regex as re
 from ..constant import PAT
 import multiprocessing
+from .pretokenization import get_pre_tokens_from_sequence
 
 
 def find_chunk_boundaries(
@@ -62,15 +63,7 @@ def get_partial_pre_tokens(
     with open(path, "rb") as f:
         f.seek(start)
         doc = f.read(end - start).decode("utf-8", errors="ignore")
-        pre_tokens: dict[tuple[bytes, ...], int] = {}
-        # split by special tokens
-        parts = re.split("|".join(re.escape(tok) for tok in special_tokens), doc)
-        for part in parts:
-            for m in re.finditer(PAT, part):
-                token = m.group(0).encode("utf-8")
-                token = tuple(token[i:i+1] for i in range(len(token)))
-                pre_tokens[token] = pre_tokens.get(token, 0) + 1
-        return pre_tokens
+        return get_pre_tokens_from_sequence(doc, special_tokens)
 # we have chunked_doc here, which is string
 # use transfer to ['', '', '']
 def pre_tokenization(
