@@ -151,10 +151,14 @@ def save_bpe_json(path: str, vocab, merges):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f)
 
-def load_bpe_json(path: str):
+def load_bpe_vocab_json(path: str):
     with open(path, "r", encoding="utf-8") as f:
         payload = json.load(f)
-
     vocab = {int(k): bytes.fromhex(v) for k, v in payload["vocab"].items()}
+    return vocab
+
+def load_bpe_merges_json(path: str):
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
     merges = [(bytes.fromhex(a), bytes.fromhex(b)) for a, b in payload["merges"]]
-    return vocab, merges
+    return merges
