@@ -63,11 +63,11 @@ def get_partial_pre_tokens(
     with open(path, "rb") as f:
         f.seek(start)
         doc = f.read(end - start).decode("utf-8", errors="ignore")
-        return get_pre_tokens_from_sequence(doc, special_tokens)
+        return get_pre_tokens_from_sequence(doc, special_tokens)[0]
 # we have chunked_doc here, which is string
 # use transfer to ['', '', '']
 def pre_tokenization(
-    path: str,
+    path: str | os.PathLike,
     special_tokens: list[str]
 ) -> dict[tuple[bytes, ...], int]:
     with open(path, "rb") as f:

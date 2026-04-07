@@ -50,16 +50,21 @@ def find_chunk_boundaries(
     # Make sure all boundaries are unique, but might be fewer than desired_num_chunks
     return sorted(set(chunk_boundaries))
 
-def get_pre_tokens_from_sequence(sequence: str, special_tokens: list[str]) -> dict[tuple[bytes, ...], int]:
+def get_pre_tokens_from_sequence(
+    sequence: str,
+    special_tokens: list[str]
+) -> tuple[dict[tuple[bytes, ...], int], list[list[bytes]]]:
     pre_tokens: dict[tuple[bytes, ...], int] = {}
+    pre_tokens_sequence: list[list[bytes]] = [[]]
     # split by special tokens
     parts = re.split("|".join(re.escape(tok) for tok in special_tokens), sequence)
     for part in parts:
         for m in re.finditer(PAT, part):
-            token = m.group(0).encode("utf-8")
-            token = tuple(token[i:i+1] for i in range(len(token)))
-            pre_tokens[token] = pre_tokens.get(token, 0) + 1
-    return pre_tokens
+            pre_token = m.group(0).encode("utf-8")
+            pre_token = tuple(pre_token[i:i+1] for i in range(len(pre_token)))
+            pre_tokens[pre_token] = pre_tokens.get(pre_token, 0) + 1
+            pre_tokens_sequence.append(list(pre_token))
+    return pre_tokens, pre_tokens_sequence
 
 # we have chunked_doc here, which is string
 # use transfer to ['', '', '']
@@ -79,7 +84,7 @@ def pre_tokenization(
             f.seek(start)
             chunk = f.read(end - start).decode("utf-8", errors="ignore")
             # Run pre-tokenization on your chunk and store the counts for each pre-token
-            pre_tokens = get_pre_tokens_from_sequence(chunk, special_tokens)
+            pre_tokens, _ = get_pre_tokens_from_sequence(chunk, special_tokens)
             for key,value in pre_tokens.items():
                 all_pre_tokens[key] = all_pre_tokens.get(key, 0) + value
         return all_pre_tokens
