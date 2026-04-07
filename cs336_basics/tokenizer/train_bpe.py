@@ -1,5 +1,6 @@
 from .pretokenization_mp import pre_tokenization
 import json
+import os
 
 def merge(
     vocab: dict[int, bytes],
@@ -126,7 +127,7 @@ def merge_with_buffer(
     return merges
 
 def train_bpe(
-    input_path: str,
+    input_path: str | os.PathLike,
     vocab_size: int,
     special_tokens: list[str]
 ) -> tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
