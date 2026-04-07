@@ -55,10 +55,14 @@ def get_pre_tokens_from_sequence(
     special_tokens: list[str]
 ) -> tuple[dict[tuple[bytes, ...], int], list[list[bytes]]]:
     pre_tokens: dict[tuple[bytes, ...], int] = {}
-    pre_tokens_sequence: list[list[bytes]] = [[]]
-    # split by special tokens
-    parts = re.split("|".join(re.escape(tok) for tok in special_tokens), sequence)
+    pre_tokens_sequence: list[list[bytes]] = []
+    # split by special tokens, but remain it in parts
+    special_pattern = "|".join(re.escape(tok) for tok in special_tokens)
+    parts = re.split(f"({special_pattern})", sequence) if special_pattern else [sequence]
     for part in parts:
+        if part in special_tokens:
+            pre_tokens_sequence.append([part.encode("utf-8")])
+            continue
         for m in re.finditer(PAT, part):
             pre_token = m.group(0).encode("utf-8")
             pre_token = tuple(pre_token[i:i+1] for i in range(len(pre_token)))
