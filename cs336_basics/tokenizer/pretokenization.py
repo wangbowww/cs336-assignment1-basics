@@ -57,7 +57,8 @@ def get_pre_tokens_from_sequence(
     pre_tokens: dict[tuple[bytes, ...], int] = {}
     pre_tokens_sequence: list[list[bytes]] = []
     # split by special tokens, but remain it in parts
-    special_pattern = "|".join(re.escape(tok) for tok in special_tokens)
+    sorted_special_tokens = sorted(special_tokens, key=len, reverse=True)
+    special_pattern = "|".join(re.escape(tok) for tok in sorted_special_tokens)
     parts = re.split(f"({special_pattern})", sequence) if special_pattern else [sequence]
     for part in parts:
         if part in special_tokens:
