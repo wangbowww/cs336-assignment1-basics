@@ -1,3 +1,7 @@
+"""
+    Base version of the Pretokenization procedure, which can process the 'chunks' sequentially.
+"""
+
 import os
 from typing import BinaryIO
 

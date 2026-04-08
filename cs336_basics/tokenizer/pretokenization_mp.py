@@ -1,3 +1,7 @@
+"""
+    Multi-Process version of the Pretokenization procedure, which can process the 'chunks' in parallel.
+"""
+
 import os
 from typing import BinaryIO
 

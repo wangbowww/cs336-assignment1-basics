@@ -1,3 +1,7 @@
+"""
+    The training process of BPE
+"""
+
 from .pretokenization_mp import pre_tokenization
 import json
 import os

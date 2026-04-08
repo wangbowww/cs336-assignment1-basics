@@ -1,3 +1,7 @@
+"""
+    The BPE tokenizer class, which can encode a text of string and decode ids to texts.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
