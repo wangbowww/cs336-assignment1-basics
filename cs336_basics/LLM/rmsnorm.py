@@ -3,6 +3,7 @@
 """
 import torch
 import torch.nn as nn
+from jaxtyping import Float
 from einops import reduce
 from .utils import init_RMSNorm_weight
 
@@ -25,13 +26,13 @@ class RMSNorm(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor # (batch_size, seq, d_model)
-    ) -> torch.Tensor:
+        x: Float[torch.Tensor, " ... d_model"]
+    ) -> Float[torch.Tensor, " ... d_model"]:
         in_dtype = x.dtype
         # prevent overflow
         x.to(torch.float32)
         # input x*x, and reduce the last dim using "mean"
         mean_square = reduce(x * x, "... d_model -> ... 1", "mean")
-        # x / ...(broadcast to (b,s,d))
+        # x / ...(broadcast to (...,d))
         result = x / torch.sqrt(mean_square + self.eps) * self.gain
         return result.to(in_dtype)

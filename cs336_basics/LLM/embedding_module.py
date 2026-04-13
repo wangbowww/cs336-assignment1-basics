@@ -3,6 +3,7 @@
 """
 import torch
 import torch.nn as nn
+from jaxtyping import Float, Int
 from .utils import init_embedding_weight
 
 class Embedding(nn.Module):
@@ -23,6 +24,6 @@ class Embedding(nn.Module):
         self.embeddings = nn.Parameter(w)
     def forward(
         self,
-        token_ids: torch.Tensor
-    ) -> torch.Tensor:
+        token_ids: Int[torch.Tensor, " ..."]
+    ) -> Float[torch.Tensor, " ... d_model"]:
         return self.embeddings[token_ids]
