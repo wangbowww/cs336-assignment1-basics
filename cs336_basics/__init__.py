@@ -8,3 +8,4 @@ from .tokenizer import BPETokenizer
 
 from .LLM import Linear
 from .LLM import Embedding
+from .LLM import RMSNorm

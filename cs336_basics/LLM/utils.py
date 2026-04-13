@@ -21,4 +21,4 @@ def init_embedding_weight(
 def init_RMSNorm_weight(
     W: torch.Tensor
 ) -> torch.Tensor:
-    raise NotImplementedError
+    return torch.nn.init.ones_(W)
