@@ -3,6 +3,8 @@
 """
 import torch
 import torch.nn as nn
+from .utils import init_embedding_weight
+
 class Embedding(nn.Module):
     def __init__(
         self,
@@ -17,8 +19,7 @@ class Embedding(nn.Module):
         self.device = device
         self.dtype = dtype
         w = torch.empty(size=(self.vocab_size, self.d_model), device=device, dtype=dtype)
-        std = 2/(self.vocab_size + self.d_model) ** 0.5
-        nn.init.trunc_normal_(w, mean=0.0, std=std, a=-3*std, b=3*std)
+        init_embedding_weight(w)
         self.embeddings = nn.Parameter(w)
     def forward(
         self,

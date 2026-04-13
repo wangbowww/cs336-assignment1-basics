@@ -3,6 +3,7 @@
 """
 import torch
 from torch import nn
+from .utils import init_linear_weight
 
 class Linear(nn.Module):
     def __init__(
@@ -24,8 +25,7 @@ class Linear(nn.Module):
             self.in_features,
             device=self.device,
             dtype=self.dtype)
-        std = 2/(self.in_features + self.out_features) ** 0.5
-        nn.init.trunc_normal_(w, mean=0.0, std=std, a=-3*std, b=3*std)
+        init_linear_weight(w, in_features, out_features)
         self.W = nn.Parameter(w)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
