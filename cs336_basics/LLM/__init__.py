@@ -5,3 +5,4 @@ from .ffn import SwiGLUFFN
 from .rope import RoPE
 from .softmax import softmax
 from .attention import scaled_dot_product_attention
+from .attention import multihead_self_attention
