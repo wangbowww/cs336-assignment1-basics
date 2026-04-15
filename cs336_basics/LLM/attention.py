@@ -59,7 +59,9 @@ class MHAttention(nn.Module):
         V = rearrange(V, "... seq (head d_v) -> ... head seq d_v", head=self.num_heads, d_v=d_k)
 
         # apply RoPE
-        if self.rope is not None and token_positions is not None:
+        if self.rope is not None:
+            if token_positions is None:
+                token_positions = torch.arange(Q.shape[-2], device=Q.device)
             Q = self.rope(Q, token_positions)
             K = self.rope(K, token_positions)
         # causal mask
