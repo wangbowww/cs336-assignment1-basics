@@ -2,12 +2,14 @@
     Attention Implementations
 """
 import torch
+import torch.nn as nn
 from jaxtyping import Float, Bool, Int
 from einops import rearrange
 import math
 
 from .softmax import softmax
 from .rope import RoPE
+from .linear_module import Linear
 
 def scaled_dot_product_attention(
     Q: Float[torch.Tensor, " ... queries d_k"],
@@ -25,51 +27,46 @@ def scaled_dot_product_attention(
     attn = softmax(scores, dim=-1)
     return attn @ V
 
-def multihead_self_attention(
-    d_model: int,
-    num_heads: int,
-    q_proj_weight: Float[torch.Tensor, " d_k d_model"],
-    k_proj_weight: Float[torch.Tensor, " d_k d_model"],
-    v_proj_weight: Float[torch.Tensor, " d_v d_model"],
-    o_proj_weight: Float[torch.Tensor, " d_model d_v"],
-    in_features: Float[torch.Tensor, " ... sequence_length d_model"],
-    theta: float | None = None,
-    max_seq_len: int | None = None,
-    token_positions: Int[torch.Tensor, " ... sequence_length"] | None = None,
-) -> Float[torch.Tensor, " ... sequence_length d_out"]:
-    if d_model % num_heads != 0:
-        raise ValueError(f"d_model must be divisible by num_heads, got d_model={d_model} and num_heads={num_heads}")
+class MHAttention(nn.Module):
+    def __init__(
+        self,
+        d_model: int,
+        num_heads: int, 
+        theta: float | None = None,
+        max_seq_len: int | None = None,
+    ) -> None:
+        super().__init__()
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.Wqkv = Linear(d_model, 3 * d_model)
+        self.Wo = Linear(d_model, d_model)
+        self.rope = RoPE(theta=theta, d_model=d_model // num_heads, max_seq_len=max_seq_len) if theta is not None and max_seq_len is not None else None
 
-    q_total = q_proj_weight.shape[0]
-    k_total = k_proj_weight.shape[0]
-    v_total = v_proj_weight.shape[0]
-    if q_total % num_heads != 0 or k_total % num_heads != 0 or v_total % num_heads != 0:
-        raise ValueError("Q/K/V projection output dims must be divisible by num_heads")
+    def forward(
+        self,
+        in_features: Float[torch.Tensor, " ... sequence_length d_model"],
+        token_positions: Int[torch.Tensor, " ... sequence_length"] | None = None,
+    ) -> Float[torch.Tensor, " ... sequence_length d_out"]:
+        if self.d_model % self.num_heads != 0:
+            raise ValueError(f"d_model must be divisible by num_heads, got d_model={self.d_model} and num_heads={self.num_heads}")
 
-    d_k = q_total // num_heads
-    if k_total // num_heads != d_k:
-        raise ValueError("Per-head Q and K dimensions must match")
-    d_v = v_total // num_heads
+        # Compute Q, K, V in one large projection and then split.
+        qkv = self.Wqkv(in_features)  # shape: (..., seq_len, 3 * d_model)
+        Q, K, V = torch.split(qkv, [self.d_model, self.d_model, self.d_model], dim=-1)
+        d_k = self.d_model // self.num_heads
+        Q = rearrange(Q, "... seq (head d_k) -> ... head seq d_k", head=self.num_heads, d_k=d_k)
+        K = rearrange(K, "... seq (head d_k) -> ... head seq d_k", head=self.num_heads, d_k=d_k)
+        V = rearrange(V, "... seq (head d_v) -> ... head seq d_v", head=self.num_heads, d_v=d_k)
 
-    # Compute Q, K, V in one large projection and then split.
-    qkv_proj_weight = torch.cat([q_proj_weight, k_proj_weight, v_proj_weight], dim=0)
-    qkv = in_features @ qkv_proj_weight.T
-    Q, K, V = torch.split(qkv, [q_total, k_total, v_total], dim=-1)
+        # apply RoPE
+        if self.rope is not None and token_positions is not None:
+            Q = self.rope(Q, token_positions)
+            K = self.rope(K, token_positions)
+        # causal mask
+        mask = torch.triu(torch.ones(Q.shape[-2], Q.shape[-2], device=Q.device, dtype=torch.bool), diagonal=1)
+        mask = ~mask
+        attn_out = scaled_dot_product_attention(Q, K, V, mask=mask)
 
-    Q = rearrange(Q, "... seq (head d_k) -> ... head seq d_k", head=num_heads, d_k=d_k)
-    K = rearrange(K, "... seq (head d_k) -> ... head seq d_k", head=num_heads, d_k=d_k)
-    V = rearrange(V, "... seq (head d_v) -> ... head seq d_v", head=num_heads, d_v=d_v)
-
-    # apply RoPE
-    if theta is not None and max_seq_len is not None and token_positions is not None:
-        rope = RoPE(theta=theta, d_model=d_k, max_seq_len=max_seq_len, device=in_features.device)
-        Q = rope(Q, token_positions)
-        K = rope(K, token_positions)
-    # causal mask
-    mask = torch.triu(torch.ones(Q.shape[-2], Q.shape[-2], device=Q.device, dtype=torch.bool), diagonal=1)
-    mask = ~mask
-    attn_out = scaled_dot_product_attention(Q, K, V, mask=mask)
-
-    # reshape back and apply output projection
-    attn_out = rearrange(attn_out, "... head seq d_v -> ... seq (head d_v)")
-    return attn_out @ o_proj_weight.T
+        # reshape back and apply output projection
+        attn_out = rearrange(attn_out, "... head seq d_v -> ... seq (head d_v)")
+        return self.Wo(attn_out)
