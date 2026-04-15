@@ -6,3 +6,4 @@ from .rope import RoPE
 from .softmax import softmax
 from .attention import scaled_dot_product_attention
 from .attention import MHAttention
+from .transformer_block import TransformerBlock

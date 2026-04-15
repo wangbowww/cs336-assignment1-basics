@@ -14,3 +14,4 @@ from .LLM import RoPE
 from .LLM import softmax
 from .LLM import scaled_dot_product_attention
 from .LLM import MHAttention
+from .LLM import TransformerBlock
