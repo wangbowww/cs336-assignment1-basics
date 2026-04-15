@@ -1,5 +1,5 @@
 """
-    Scaled dot product attention Implementation
+    Attention Implementations
 """
 import torch
 from jaxtyping import Float, Bool, Int
