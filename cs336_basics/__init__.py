@@ -12,3 +12,4 @@ from .LLM import RMSNorm
 from .LLM import SwiGLUFFN
 from .LLM import RoPE
 from .LLM import softmax
+from .LLM import scaled_dot_product_attention
