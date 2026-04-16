@@ -7,3 +7,4 @@ from .softmax import softmax
 from .attention import scaled_dot_product_attention
 from .attention import MHAttention
 from .transformer_block import TransformerBlock
+from .language_model import LM

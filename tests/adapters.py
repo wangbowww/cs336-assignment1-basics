@@ -415,7 +415,26 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    from cs336_basics import LM
+    lm = LM(vocab_size, context_length, d_model, num_layers, num_heads, d_ff, rope_theta)
+    block_weights = {}
+    for i in range(num_layers):
+        block_weights[f"blocks.{i}.attention.Wqkv.W"] = torch.cat([weights[f"layers.{i}.attn.q_proj.weight"], weights[f"layers.{i}.attn.k_proj.weight"], weights[f"layers.{i}.attn.v_proj.weight"]], dim=0)
+        block_weights[f"blocks.{i}.attention.Wo.W"] = weights[f"layers.{i}.attn.output_proj.weight"]
+        block_weights[f"blocks.{i}.norm1.gain"] = weights[f"layers.{i}.ln1.weight"]
+        block_weights[f"blocks.{i}.ffn.W1.W"] = weights[f"layers.{i}.ffn.w1.weight"]
+        block_weights[f"blocks.{i}.ffn.W2.W"] = weights[f"layers.{i}.ffn.w2.weight"]
+        block_weights[f"blocks.{i}.ffn.W3.W"] = weights[f"layers.{i}.ffn.w3.weight"]
+        block_weights[f"blocks.{i}.norm2.gain"] = weights[f"layers.{i}.ln2.weight"]
+    lm.load_state_dict(
+        {
+            "input_embedding.embeddings": weights["token_embeddings.weight"],
+            **block_weights,
+            "norm.gain": weights["ln_final.weight"],
+            "out_embedding.W": weights["lm_head.weight"]
+        }
+    )
+    return lm(in_indices)
 
 
 def run_rmsnorm(
