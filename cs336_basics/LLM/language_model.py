@@ -8,7 +8,6 @@ from jaxtyping import Float, Int
 from .embedding_module import Embedding
 from .transformer_block import TransformerBlock
 from .rmsnorm import RMSNorm
-from .softmax import softmax
 from .linear_module import Linear
 
 
@@ -37,6 +36,7 @@ class LM(nn.Module):
         self, 
         in_indices: Int[torch.Tensor, " batch_size seq"],
     ) -> Float[torch.Tensor, " batch_size seq vocab_size"]:
+        # unnormalized output, i.e. logits
         return self.out_embedding(
             self.norm(
                 self.blocks(
