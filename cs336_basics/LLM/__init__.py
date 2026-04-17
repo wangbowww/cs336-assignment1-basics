@@ -8,3 +8,4 @@ from .attention import scaled_dot_product_attention
 from .attention import MHAttention
 from .transformer_block import TransformerBlock
 from .language_model import LM
+from .loss import cross_entropy_loss

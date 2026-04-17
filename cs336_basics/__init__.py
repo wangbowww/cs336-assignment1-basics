@@ -16,3 +16,4 @@ from .LLM import scaled_dot_product_attention
 from .LLM import MHAttention
 from .LLM import TransformerBlock
 from .LLM import LM
+from .LLM import cross_entropy_loss
