@@ -6,6 +6,11 @@ import torch.nn as nn
 from .linear_module import Linear
 from jaxtyping import Float
 
+def silu(
+    x: Float[torch.Tensor, " ... d_model"]
+) -> Float[torch.Tensor, " ... d_model"]:
+    return x * torch.sigmoid(x)
+
 class SwiGLUFFN(nn.Module):
     def __init__(
         self,
@@ -22,15 +27,9 @@ class SwiGLUFFN(nn.Module):
         self.W1 = Linear(d_model, d_ff, device, dtype)
         self.W2 = Linear(d_ff, d_model, device, dtype)
         self.W3 = Linear(d_model, d_ff, device, dtype)
-    
-    @staticmethod
-    def silu(
-        x: Float[torch.Tensor, " ... d_model"]
-    ) -> Float[torch.Tensor, " ... d_model"]:
-        return x * torch.sigmoid(x)
 
     def forward(
         self,
         x: Float[torch.Tensor, " ... d_model"]
     ) -> Float[torch.Tensor, "... d_model"]:
-        return self.W2(self.silu(self.W1(x)) * self.W3(x))
+        return self.W2(silu(self.W1(x)) * self.W3(x))
