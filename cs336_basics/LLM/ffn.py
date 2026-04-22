@@ -5,11 +5,7 @@ import torch
 import torch.nn as nn
 from .linear_module import Linear
 from jaxtyping import Float
-
-def silu(
-    x: Float[torch.Tensor, " ... d_model"]
-) -> Float[torch.Tensor, " ... d_model"]:
-    return x * torch.sigmoid(x)
+from ..utils import silu
 
 class SwiGLUFFN(nn.Module):
     def __init__(

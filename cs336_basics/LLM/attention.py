@@ -7,7 +7,7 @@ from jaxtyping import Float, Bool, Int
 from einops import rearrange
 import math
 
-from .softmax import softmax
+from ..utils import softmax
 from .rope import RoPE
 from .linear_module import Linear
 

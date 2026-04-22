@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from jaxtyping import Float
 from einops import reduce
-from .utils import init_RMSNorm_weight
+from ..utils import init_RMSNorm_weight
 
 class RMSNorm(nn.Module):
     def __init__(

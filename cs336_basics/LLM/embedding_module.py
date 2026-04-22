@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 from jaxtyping import Float, Int
-from .utils import init_embedding_weight
+from ..utils import init_embedding_weight
 
 class Embedding(nn.Module):
     def __init__(

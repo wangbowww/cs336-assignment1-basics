@@ -4,7 +4,7 @@
 import torch
 from torch import nn
 from jaxtyping import Float
-from .utils import init_linear_weight
+from ..utils import init_linear_weight
 
 class Linear(nn.Module):
     def __init__(
