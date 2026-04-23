@@ -111,6 +111,6 @@ def model_forward_flops_counting(
     # output embedding
     result["output_embedding"] = out_embedding(seq_len, d_model, vocab_size)
 
-    result["total_params"] = sum(result.values())
+    result["total_flops"] = sum(result.values())
 
     return result
