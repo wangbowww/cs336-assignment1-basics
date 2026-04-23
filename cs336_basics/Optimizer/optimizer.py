@@ -35,6 +35,7 @@ class AdamWOptim(torch.optim.Optimizer):
             weight_decay = group["weight_decay"]
             b1, b2 = group["betas"][0], group["betas"][1]
             eps = group["eps"]
+            lrt = None
             for p in group["params"]:
                 if p.grad is None:
                     continue
@@ -43,11 +44,13 @@ class AdamWOptim(torch.optim.Optimizer):
                 m = state.get("m", torch.zeros_like(p))
                 v = state.get("v", torch.zeros_like(p))
                 grad = p.grad.data
-                state["m"] = b1 * m + (1 - b1) * grad
-                state["v"] = b2 * v + (1 - b2) * grad * grad
+                grad2 = grad * grad
+                state["m"] = b1 * (m - grad) + grad
+                state["v"] = b2 * (v - grad2) + grad2
                 m = state["m"]
                 v = state["v"]
-                lrt = lr * math.sqrt(1 - b2 ** t) / (1 - b1 ** t)
+                if lrt is None:
+                    lrt = lr * math.sqrt(1 - b2 ** t) / (1 - b1 ** t)
                 p.data -= lrt * m / (v.sqrt() + eps)
                 p.data -= lr * weight_decay * p.data
                 state["t"] = t + 1
