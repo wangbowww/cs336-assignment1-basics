@@ -9,12 +9,10 @@ from .memory import model_weights_counting, model_parameters_counting
 
 from .model_config import model_config
 
-from .utils import print_ordered_result, draw_model_flops_breakdown
+from .utils import draw_model_flops_breakdown
 
 # generate by codex (GPT 5.4)
-def analyze_gpt2_xl_long_context_flops(
-    config: model_config,
-):
+def analyze_gpt2_xl_long_context_flops():
     """
         Compare GPT-2 XL FLOPs at the default context length and at 16,384 tokens.
     """
@@ -94,7 +92,7 @@ if __name__ == "__main__":
     print("------------------------------------------------------------------------------")
     
     print("e) GPT-2 XL long-context FLOPs analysis")
-    analyze_gpt2_xl_long_context_flops(config_gpt2_xl)
+    analyze_gpt2_xl_long_context_flops()
     print("------------------------------------------------------------------------------")
     
     print("Summary:"
