@@ -1,6 +1,9 @@
 import importlib.metadata
 
-__version__ = importlib.metadata.version("cs336_basics")
+try:
+    __version__ = importlib.metadata.version("cs336_basics")
+except importlib.metadata.PackageNotFoundError:
+    pass
 
 
 from .tokenizer import train_bpe
