@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from jaxtyping import Float
 from ..utils import init_linear_weight
+import einops
 
 class Linear(nn.Module):
     def __init__(
@@ -33,4 +34,7 @@ class Linear(nn.Module):
         x: Float[torch.Tensor, " ... d_in"]
     ) -> Float[torch.Tensor, " ... d_out"]:
         # Apply the linear transformation to the input
-        return x @ self.W.T
+        return einops.einsum(
+            x, self.W, 
+            " ... d_in, d_out d_in -> ... d_out",
+        )
