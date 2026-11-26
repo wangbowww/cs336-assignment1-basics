@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 from jaxtyping import Float, Bool, Int
-from einops import rearrange
+from einops import einsum
 import math
 
 from ..utils import softmax
@@ -13,19 +13,25 @@ from .linear_module import Linear
 
 def scaled_dot_product_attention(
     Q: Float[torch.Tensor, " ... queries d_k"],
-    K: Float[torch.Tensor, " ... keys d_k"],
-    V: Float[torch.Tensor, " ... values d_v"],
-    mask: Bool[torch.Tensor, " ... queries keys"] | None = None,
+    K: Float[torch.Tensor, " ... kv_len d_k"],
+    V: Float[torch.Tensor, " ... kv_len d_v"],
+    mask: Bool[torch.Tensor, " ... queries kv_len"] | None = None,
 ) -> Float[torch.Tensor, " ... queries d_v"]:
     d_k = Q.shape[-1]
-    scores = Q @ rearrange(K, " ... keys d_k -> ... d_k keys") / math.sqrt(d_k)
+    scores = einsum(
+        Q, K, 
+        " ... queries d_k, ... kv_len d_k -> ... queries kv_len"
+    ) / math.sqrt(d_k)
 
     # replace the value to -INF if mask[i,j] == False
     if mask is not None:
         scores = scores.masked_fill(~mask, torch.finfo(scores.dtype).min)
 
     attn = softmax(scores, dim=-1)
-    return attn @ V
+    return einsum(
+        attn, V,
+        " ... queries kv_len, ... kv_len d_v -> ... queries d_v"
+    )
 
 class MHAttention(nn.Module):
     def __init__(
