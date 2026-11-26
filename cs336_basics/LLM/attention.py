@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 from jaxtyping import Float, Bool, Int
-from einops import einsum
+from einops import einsum, rearrange
 import math
 
 from ..utils import softmax
